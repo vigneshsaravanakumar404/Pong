@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public class MainActivity extends AppCompatActivity {
 
     public static int difficultyLevel = 0;
@@ -49,14 +50,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         difficulty.check(R.id.easy);
-        play.setOnClickListener(v -> {
-
-            startActivity(game);
-        });
+        play.setOnClickListener(v -> startActivity(game));
 
         // Lock the app to portrait mode
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        // ! DELETE AFTER TESTING
+        startActivity(game);
 
     }
 }
