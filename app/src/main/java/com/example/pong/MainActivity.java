@@ -1,6 +1,8 @@
 package com.example.pong;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     Button play;
     Intent game;
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,12 +54,21 @@ public class MainActivity extends AppCompatActivity {
             startActivity(game);
         });
 
+        // Lock the app to portrait mode
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
 
     }
 }
 // TODO
 // 1. Create Splash Screen
-// 2. Create Main Menu
-// 3. Set App Icon
-// 4. Set app Name
-// 5. Improve Welcome Screen
+// 5. Improve Welcome Screen colors/design
+// 6. Improve Splash Screen colors/design
+
+// ! Extras
+// 1. App name
+// 2. Full Screen
+// 3. Menu Locked to Portrait
+// 4. Difficulty Levels
+// 5. Game locked to landscape
+// 6. Splash Screen

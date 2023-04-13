@@ -19,7 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class GameActivity extends AppCompatActivity {
 
-
+    // Variables
     GameSurface gameSurface;
 
     @Override
@@ -28,8 +28,7 @@ public class GameActivity extends AppCompatActivity {
         gameSurface = new GameSurface(this);
         setContentView(gameSurface);
 
-
-        // hide the action bar and make the activity full screen
+        // Hide the action bar and make the activity full screen
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
@@ -39,6 +38,7 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
+    // Pause and resume the game
     @Override
     protected void onPause() {
         super.onPause();
@@ -54,7 +54,7 @@ public class GameActivity extends AppCompatActivity {
     // Game Surface
     public class GameSurface extends SurfaceView implements Runnable, SensorEventListener {
 
-
+        // Variables
         Thread gameThread;
         SurfaceHolder holder;
         volatile boolean running = false;
@@ -68,19 +68,17 @@ public class GameActivity extends AppCompatActivity {
 
         public GameSurface(Context context) {
             super(context);
-            holder = getHolder();
-
-
-            Display screenDisplay = getWindowManager().getDefaultDisplay();
-            Point sizeOfScreen = new Point();
-            screenDisplay.getSize(sizeOfScreen);
-            screenWidth = sizeOfScreen.y;
-            screenHeight = sizeOfScreen.x;
 
             SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             Sensor accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
+            holder = getHolder();
+            Display screenDisplay = getWindowManager().getDefaultDisplay();
+            Point sizeOfScreen = new Point();
+            screenDisplay.getSize(sizeOfScreen);
+            screenWidth = sizeOfScreen.y;
+            screenHeight = sizeOfScreen.x;
             paintProperty = new Paint();
             paintProperty.setTextSize(100);
 
