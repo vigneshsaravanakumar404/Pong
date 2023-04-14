@@ -65,7 +65,7 @@ public class GameActivity extends AppCompatActivity {
     public class GameSurface extends SurfaceView implements Runnable, SensorEventListener {
 
         // Variables
-        Thread gameThread;
+        Thread gameThread, accelerometerThread;
         final SurfaceHolder holder;
         volatile boolean running = false;
         int ballX = 0;
@@ -75,6 +75,8 @@ public class GameActivity extends AppCompatActivity {
         final int screenWidth;
         final int screenHeight;
         int ballY = 0;
+        SensorManager sensorManager;
+        Sensor accelerometerSensor;
 
 
         public GameSurface(Context context) {
@@ -82,8 +84,8 @@ public class GameActivity extends AppCompatActivity {
 
             // Accelerometer Declaration
             Log.d("REACHED", "Accelerometer Declaration");
-            SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            Sensor accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
 
             holder = getHolder();
@@ -117,10 +119,13 @@ public class GameActivity extends AppCompatActivity {
                         canvas.drawCircle(ballX, ballY, 50, paintProperty);
 
                         holder.unlockCanvasAndPost(canvas);
+
+
                     }
                 });
             }
         }
+
 
 
         // Thread Processing
@@ -145,6 +150,8 @@ public class GameActivity extends AppCompatActivity {
         @Override
         public void onSensorChanged(SensorEvent event) {
 
+
+            // TODO CREATE A THREAD FOR THIS
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
@@ -172,8 +179,6 @@ public class GameActivity extends AppCompatActivity {
             } else if (ballY > screenHeight) {
                 ballY = screenHeight;
             }
-
-
         }
 
         @Override
