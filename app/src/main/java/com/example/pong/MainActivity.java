@@ -56,10 +56,6 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 
-        // ! DELETE AFTER TESTING
-        startActivity(game);
-
-
     }
 }
 // TODO

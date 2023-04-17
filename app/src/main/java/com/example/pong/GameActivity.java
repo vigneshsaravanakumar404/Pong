@@ -21,9 +21,9 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class GameActivity extends AppCompatActivity {
-    //Code from this program has been used from Beginning Android Games
-    //Review SurfaceView, Canvas, continue
 
+
+    // Variables
     GameSurface gameSurface;
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -63,16 +63,16 @@ public class GameActivity extends AppCompatActivity {
     public class GameSurface extends SurfaceView implements Runnable, SensorEventListener {
 
 
-        // Variables
-        Thread gameThread, accelerometerThread;
         final SurfaceHolder holder;
-        volatile boolean running = false;
-        int ballX = 0;
         final int x = 200;
         final String sensorOutput = "This is test";
         final Paint paintProperty;
         final int screenWidth;
         final int screenHeight;
+        // Variables
+        Thread gameThread, accelerometerThread;
+        volatile boolean running = false;
+        int ballX = 0;
         int ballY = 0;
         SensorManager sensorManager;
         Sensor accelerometerSensor;
@@ -85,7 +85,7 @@ public class GameActivity extends AppCompatActivity {
             Log.d("REACHED", "Accelerometer Declaration");
             sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
+            sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_STATUS_ACCURACY_LOW, SensorManager.SENSOR_DELAY_GAME);
 
             holder = getHolder();
             Display screenDisplay = getWindowManager().getDefaultDisplay();
@@ -154,6 +154,17 @@ public class GameActivity extends AppCompatActivity {
             float y = event.values[1];
             float z = event.values[2];
 
+
+            if (Math.abs(x) < 1) {
+                x = 0;
+            }
+            if (Math.abs(y) < 1) {
+                y = 0;
+            }
+            if (Math.abs(z) < 1) {
+                z = 0;
+            }
+
             // calculate the magnitude of acceleration
             float acceleration = (float) Math.sqrt(x * x + y * y + z * z * 0.0001);
 
@@ -162,8 +173,8 @@ public class GameActivity extends AppCompatActivity {
             float movementY = y / acceleration;
 
             // adjust the ball position based on movement proportion
-            ballX -= (int) (movementX * 50 * 0.0001);
-            ballY += (int) (movementY * 50 * 0.0001);
+            ballX -= (int) (movementX * 50 * 0.65);
+            ballY += (int) (movementY * 50 * 0.65);
 
             // make sure the ball does not go out of the screen
             if (ballX < 0) {
