@@ -55,8 +55,10 @@ public class MainActivity extends AppCompatActivity {
         // Lock the app to portrait mode
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+
         // ! DELETE AFTER TESTING
         startActivity(game);
+
 
     }
 }

@@ -1,8 +1,8 @@
 package com.example.pong;
 
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
@@ -21,18 +21,18 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class GameActivity extends AppCompatActivity {
+    //Code from this program has been used from Beginning Android Games
+    //Review SurfaceView, Canvas, continue
 
-    // Variables
     GameSurface gameSurface;
-    // --Commented out by Inspection (4/13/2023 5:30 PM):int difficultyLevel = MainActivity.difficultyLevel;
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Set the View and force Landscape
         gameSurface = new GameSurface(this);
-        this.setRequestedOrientation(SCREEN_ORIENTATION_LANDSCAPE);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(gameSurface);
 
         // Hide the action bar and make the activity full screen
@@ -44,11 +44,8 @@ public class GameActivity extends AppCompatActivity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
 
 
-        Log.d("REACHED", "Created Game Activity");
-
     }
 
-    // Pause and resume the game
     @Override
     protected void onPause() {
         super.onPause();
@@ -61,8 +58,10 @@ public class GameActivity extends AppCompatActivity {
         gameSurface.resume();
     }
 
-    // Game Surface
+
+    //----------------------------GameSurface Below This Line--------------------------
     public class GameSurface extends SurfaceView implements Runnable, SensorEventListener {
+
 
         // Variables
         Thread gameThread, accelerometerThread;
@@ -127,7 +126,6 @@ public class GameActivity extends AppCompatActivity {
         }
 
 
-
         // Thread Processing
         public void resume() {
             running = true;
@@ -157,15 +155,15 @@ public class GameActivity extends AppCompatActivity {
             float z = event.values[2];
 
             // calculate the magnitude of acceleration
-            float acceleration = (float) Math.sqrt(x * x + y * y + z * z);
+            float acceleration = (float) Math.sqrt(x * x + y * y + z * z * 0.0001);
 
             // calculate the proportion of movement for the ball
             float movementX = x / acceleration;
             float movementY = y / acceleration;
 
             // adjust the ball position based on movement proportion
-            ballX -= (int) (movementX * 50);
-            ballY += (int) (movementY * 50);
+            ballX -= (int) (movementX * 50 * 0.0001);
+            ballY += (int) (movementY * 50 * 0.0001);
 
             // make sure the ball does not go out of the screen
             if (ballX < 0) {
@@ -187,6 +185,3 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
