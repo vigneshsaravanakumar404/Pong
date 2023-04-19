@@ -31,8 +31,8 @@ public class GameActivity extends AppCompatActivity {
 
     // Variables
     GameSurface gameSurface;
-    int ballSpeedX = 10;
-    int ballSpeedY = 5;
+    int ballSpeedX = 100;
+    int ballSpeedY = 100;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -43,7 +43,6 @@ public class GameActivity extends AppCompatActivity {
 
         // Hide the action bar and make the activity full screen
         ActionBar actionBar = getSupportActionBar();
-
 
         setContentView(gameSurface);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
