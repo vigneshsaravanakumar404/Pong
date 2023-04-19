@@ -31,8 +31,8 @@ public class GameActivity extends AppCompatActivity {
 
     // Variables
     GameSurface gameSurface;
-    int ballSpeedX = 10;
-    int ballSpeedY = 5;
+    int ballSpeedX = 100;
+    int ballSpeedY = 100;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
