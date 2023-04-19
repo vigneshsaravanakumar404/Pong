@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
 // 13. Game Speed Changes on click
 // 14. Extras
 // 15. Paddle Hit offset
+// 16. Fix Paddle Movement
 
 
 // ! Extras

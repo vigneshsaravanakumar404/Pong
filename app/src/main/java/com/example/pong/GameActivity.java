@@ -31,8 +31,8 @@ public class GameActivity extends AppCompatActivity {
 
     // Variables
     GameSurface gameSurface;
-    int ballSpeedX = 100;
-    int ballSpeedY = 100;
+    int ballSpeedX = 10;
+    int ballSpeedY = 5;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -124,12 +124,14 @@ public class GameActivity extends AppCompatActivity {
 
                 // Background
                 canvas.drawRGB(0, 0, 0);
-
-                // Draw a line through the center of the screen horizontally
                 paintProperty.setColor(0xffffffff);
-                canvas.drawLine(0, screenHeight / 2, screenWidth, screenHeight / 2, paintProperty);
 
-                // Draw a white border
+
+                // Center Line
+                canvas.drawRect(0, screenHeight / 2 - 1, screenWidth, screenHeight / 2 + 1, paintProperty);
+
+
+                // Border
                 canvas.drawRect(0, 0, screenWidth, 10, paintProperty);
                 canvas.drawRect(0, 0, 10, screenHeight, paintProperty);
                 canvas.drawRect(0, screenHeight - 10, screenWidth, screenHeight, paintProperty);
@@ -137,7 +139,6 @@ public class GameActivity extends AppCompatActivity {
 
                 // Paddle Code
                 canvas.drawRect(paddleRect, paintProperty);
-
 
                 // Update the ball's position
                 ballX += ballSpeedX;
@@ -151,7 +152,6 @@ public class GameActivity extends AppCompatActivity {
                     ballX = screenWidth - 200 - 11;
                     ballSpeedX *= -1;
                 }
-
                 if (ballY < 11) {
                     ballY = 11;
                     ballSpeedY *= -1;
@@ -160,9 +160,17 @@ public class GameActivity extends AppCompatActivity {
                     ballSpeedY *= -1;
                 }
 
-                // Check for collisions with the paddle
-                if (Rect.intersects(paddleRect, new Rect(ballX, ballY, ballX + ballScaled.getWidth(), ballY + ballScaled.getHeight()))) {
+                // Check for collisions with the paddle, on collision reverse the ball's direction and offset the x velocity based on the location of the collision
+                if (ballX > paddleX && ballX < paddleX + 200 && ballY > screenHeight - 100 - 11) {
                     ballSpeedY *= -1;
+                    ballY = screenHeight - 100 - 11;
+                    if (ballX < paddleX + 50) {
+                        ballSpeedX = -100;
+                    } else if (ballX > paddleX + 150) {
+                        ballSpeedX = 100;
+                    } else {
+                        ballSpeedX = 0;
+                    }
                 }
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
 
