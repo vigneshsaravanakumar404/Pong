@@ -3,9 +3,12 @@ package com.example.pong;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,32 +19,41 @@ import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.Objects;
 
 public class GameActivity extends AppCompatActivity {
 
 
     // Variables
     GameSurface gameSurface;
+    int ballSpeedX = 10;
+    int ballSpeedY = 5;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         gameSurface = new GameSurface(this);
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        setContentView(gameSurface);
+
 
         // Hide the action bar and make the activity full screen
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-        getWindow().setFlags(0x04000000, 0x04000000);
+
+
+        setContentView(gameSurface);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        getWindow().setFlags(0x04000000, 0x04000000);
+        assert actionBar != null;
+        actionBar.hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 
 
     }
@@ -64,18 +76,21 @@ public class GameActivity extends AppCompatActivity {
 
 
         final SurfaceHolder holder;
-        final int x = 200;
-        final String sensorOutput = "This is test";
         final Paint paintProperty;
         final int screenWidth;
         final int screenHeight;
         // Variables
-        Thread gameThread, accelerometerThread;
+        Thread gameThread;
         volatile boolean running = false;
-        int ballX = 0;
-        int ballY = 0;
+        int ballX, ballY = 0;
+        int paddleX;
         SensorManager sensorManager;
         Sensor accelerometerSensor;
+
+        // Declare the ball bitmap
+        Bitmap ballBitmapScaled = BitmapFactory.decodeResource(getResources(), R.drawable.pinpongball);
+        Bitmap ballScaled = Bitmap.createScaledBitmap(ballBitmapScaled, 50, 50, false);
+        Rect paddleRect;
 
 
         public GameSurface(Context context) {
@@ -93,8 +108,10 @@ public class GameActivity extends AppCompatActivity {
             screenDisplay.getSize(sizeOfScreen);
             screenWidth = sizeOfScreen.x;
             screenHeight = sizeOfScreen.y;
+            paddleX = screenWidth / 2 - 100;
             paintProperty = new Paint();
-            paintProperty.setTextSize(100);
+
+            paddleRect = new Rect(paddleX, screenHeight - 100, paddleX + 200, screenHeight - 50);
 
 
         }
@@ -104,24 +121,53 @@ public class GameActivity extends AppCompatActivity {
             while (running) {
                 if (!holder.getSurface().isValid()) continue;
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Canvas canvas = holder.lockCanvas();
+                Canvas canvas = holder.lockCanvas();
 
-                        canvas.drawRGB(255, 0, 0);
+                // Background
+                canvas.drawRGB(0, 0, 0);
 
-                        canvas.drawText(sensorOutput, x, 200, paintProperty);
+                // Draw a line through the center of the screen horizontally
+                paintProperty.setColor(0xffffffff);
+                canvas.drawLine(0, screenHeight / 2, screenWidth, screenHeight / 2, paintProperty);
 
-                        // draw a circle with color blue
-                        paintProperty.setColor(0xff0000ff);
-                        canvas.drawCircle(ballX, ballY, 50, paintProperty);
+                // Draw a white border
+                canvas.drawRect(0, 0, screenWidth, 10, paintProperty);
+                canvas.drawRect(0, 0, 10, screenHeight, paintProperty);
+                canvas.drawRect(0, screenHeight - 10, screenWidth, screenHeight, paintProperty);
+                canvas.drawRect(screenWidth - 10, 0, screenWidth, screenHeight, paintProperty);
 
-                        holder.unlockCanvasAndPost(canvas);
+                // Paddle Code
+                canvas.drawRect(paddleRect, paintProperty);
 
 
-                    }
-                });
+                // Update the ball's position
+                ballX += ballSpeedX;
+                ballY += ballSpeedY;
+
+                // Check for collisions with the walls
+                if (ballX < 11) {
+                    ballX = 11;
+                    ballSpeedX *= -1;
+                } else if (ballX > screenWidth - 200 - 11) {
+                    ballX = screenWidth - 200 - 11;
+                    ballSpeedX *= -1;
+                }
+
+                if (ballY < 11) {
+                    ballY = 11;
+                    ballSpeedY *= -1;
+                } else if (ballY > screenHeight - 50 - 11) {
+                    ballY = screenHeight - 50 - 11;
+                    ballSpeedY *= -1;
+                }
+
+                // Check for collisions with the paddle
+                if (Rect.intersects(paddleRect, new Rect(ballX, ballY, ballX + ballScaled.getWidth(), ballY + ballScaled.getHeight()))) {
+                    ballSpeedY *= -1;
+                }
+                canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
+
+                holder.unlockCanvasAndPost(canvas);
             }
         }
 
@@ -148,46 +194,21 @@ public class GameActivity extends AppCompatActivity {
         @Override
         public void onSensorChanged(SensorEvent event) {
 
-
-            // TODO CREATE A THREAD FOR THIS
             float x = event.values[0];
             float y = event.values[1];
-            float z = event.values[2];
 
+            if (Math.abs(x) >= 0.5 || Math.abs(y) >= 0.5) {
+                // calculate the proportion of movement for the ball based in the acceleration
+                float movementX = x / ((float) Math.sqrt(x * x + y * y));
 
-            if (Math.abs(x) < 1) {
-                x = 0;
-            }
-            if (Math.abs(y) < 1) {
-                y = 0;
-            }
-            if (Math.abs(z) < 1) {
-                z = 0;
-            }
+                // adjust the ball position based on movement proportion
+                paddleX -= (int) (movementX * 50 * 0.65);
 
-            // calculate the magnitude of acceleration
-            float acceleration = (float) Math.sqrt(x * x + y * y + z * z * 0.0001);
-
-            // calculate the proportion of movement for the ball
-            float movementX = x / acceleration;
-            float movementY = y / acceleration;
-
-            // adjust the ball position based on movement proportion
-            ballX -= (int) (movementX * 50 * 0.65);
-            ballY += (int) (movementY * 50 * 0.65);
-
-            // make sure the ball does not go out of the screen
-            if (ballX < 0) {
-                ballX = 0;
-            } else if (ballX > screenWidth) {
-                ballX = screenWidth;
+                // make sure the ball does not go out of the screen
+                paddleX = Math.max(11, Math.min(screenWidth - 200 - 11, paddleX));
             }
 
-            if (ballY < 0) {
-                ballY = 0;
-            } else if (ballY > screenHeight) {
-                ballY = screenHeight;
-            }
+
         }
 
         @Override
@@ -196,3 +217,5 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 }
+
+

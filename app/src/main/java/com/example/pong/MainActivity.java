@@ -63,9 +63,10 @@ public class MainActivity extends AppCompatActivity {
 // 5. Improve Welcome Screen colors/design
 // 6. Improve Splash Screen colors/design
 
+
 // ! Extras
 // 1. App name
-// 2. Full Screen
+// 2. Complete Full Screen
 // 3. Menu Locked to Portrait
 // 4. Difficulty Levels
 // 5. Game locked to landscape
