@@ -14,14 +14,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.WindowManager;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Objects;
@@ -31,8 +28,6 @@ public class GameActivity extends AppCompatActivity {
 
     // Variables
     GameSurface gameSurface;
-    int ballSpeedX = 10;
-    int ballSpeedY = 5;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -40,23 +35,13 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         gameSurface = new GameSurface(this);
 
-
-        // Hide the action bar and make the activity full screen
-        ActionBar actionBar = getSupportActionBar();
-
-
         setContentView(gameSurface);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         getWindow().setFlags(0x04000000, 0x04000000);
-        assert actionBar != null;
-        actionBar.hide();
         Objects.requireNonNull(getSupportActionBar()).hide();
-
-
     }
+
 
     @Override
     protected void onPause() {
@@ -71,23 +56,19 @@ public class GameActivity extends AppCompatActivity {
     }
 
 
-    //----------------------------GameSurface Below This Line--------------------------
+    // Main Game Code
     public class GameSurface extends SurfaceView implements Runnable, SensorEventListener {
-
 
         final SurfaceHolder holder;
         final Paint paintProperty;
-        final int screenWidth;
-        final int screenHeight;
-        // Variables
-        Thread gameThread;
+        final int screenWidth, screenHeight;
+        final float MAX_BOUNCE_ANGLE = 60f;
+        float ballSpeedX, ballSpeedY = 10;
         volatile boolean running = false;
-        int ballX, ballY = 0;
-        int paddleX;
+        int ballX, ballY, paddleX;
+        Thread gameThread;
         SensorManager sensorManager;
         Sensor accelerometerSensor;
-
-        // Declare the ball bitmap
         Bitmap ballBitmapScaled = BitmapFactory.decodeResource(getResources(), R.drawable.pinpongball);
         Bitmap ballScaled = Bitmap.createScaledBitmap(ballBitmapScaled, 50, 50, false);
         Rect paddleRect;
@@ -97,10 +78,9 @@ public class GameActivity extends AppCompatActivity {
             super(context);
 
             // Accelerometer Declaration
-            Log.d("REACHED", "Accelerometer Declaration");
-            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
             accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_STATUS_ACCURACY_LOW, SensorManager.SENSOR_DELAY_GAME);
+            sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
 
             holder = getHolder();
             Display screenDisplay = getWindowManager().getDefaultDisplay();
@@ -109,12 +89,12 @@ public class GameActivity extends AppCompatActivity {
             screenWidth = sizeOfScreen.x;
             screenHeight = sizeOfScreen.y;
             paddleX = screenWidth / 2 - 100;
-            paintProperty = new Paint();
-
+            ballX = screenWidth / 2;
+            ballY = screenHeight / 2;
             paddleRect = new Rect(paddleX, screenHeight - 100, paddleX + 200, screenHeight - 50);
-
-
+            paintProperty = new Paint();
         }
+
 
         @Override
         public void run() {
@@ -148,24 +128,42 @@ public class GameActivity extends AppCompatActivity {
                 if (ballX < 11) {
                     ballX = 11;
                     ballSpeedX *= -1;
-                } else if (ballX > screenWidth - 200 - 11) {
-                    ballX = screenWidth - 200 - 11;
+                } else if (ballX > screenWidth - ballScaled.getWidth() - 11) {
+                    ballX = screenWidth - ballScaled.getWidth() - 11;
                     ballSpeedX *= -1;
                 }
 
                 if (ballY < 11) {
                     ballY = 11;
                     ballSpeedY *= -1;
-                } else if (ballY > screenHeight - 50 - 11) {
-                    ballY = screenHeight - 50 - 11;
+                } else if (ballY > screenHeight - ballScaled.getHeight() - 11) {
+                    ballY = screenHeight - ballScaled.getHeight() - 11;
                     ballSpeedY *= -1;
                 }
 
-                // Check for collisions with the paddle
+
+                // Some math to calculate the angle of the bounce based on where the ball hit the paddle
                 if (Rect.intersects(paddleRect, new Rect(ballX, ballY, ballX + ballScaled.getWidth(), ballY + ballScaled.getHeight()))) {
-                    ballSpeedY *= -1;
+
+                    float ballSpeed = (float) Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+                    float ballDirection = (float) Math.atan2(-ballSpeedY, ballSpeedX);
+                    float hitPosition = (ballX + ballScaled.getWidth() / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
+                    float bounceAngle;
+
+                    if (Math.abs(hitPosition) < 0.2f) {
+                        bounceAngle = 0f;
+                    } else {
+                        bounceAngle = hitPosition * MAX_BOUNCE_ANGLE;
+                    }
+
+                    ballDirection += bounceAngle * Math.PI / 180f;
+                    ballSpeedX = (float) (ballSpeed * Math.cos(ballDirection));
+                    ballSpeedY = (float) (-ballSpeed * Math.sin(ballDirection));
+                    ballY = paddleRect.top - ballScaled.getHeight() - 1;
                 }
+
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
+
 
                 holder.unlockCanvasAndPost(canvas);
             }
@@ -194,21 +192,14 @@ public class GameActivity extends AppCompatActivity {
         @Override
         public void onSensorChanged(SensorEvent event) {
 
-            float x = event.values[0];
-            float y = event.values[1];
-
-            if (Math.abs(x) >= 0.5 || Math.abs(y) >= 0.5) {
-                // calculate the proportion of movement for the ball based in the acceleration
-                float movementX = x / ((float) Math.sqrt(x * x + y * y));
-
-                // adjust the ball position based on movement proportion
-                paddleX -= (int) (movementX * 50 * 0.65);
-
-                // make sure the ball does not go out of the screen
-                paddleX = Math.max(11, Math.min(screenWidth - 200 - 11, paddleX));
+            float ax = event.values[0];
+            paddleX -= ax * 5;
+            if (paddleX < 0) {
+                paddleX = 0;
+            } else if (paddleX > screenWidth - 200) {
+                paddleX = screenWidth - 200;
             }
-
-
+            paddleRect.set(paddleX, screenHeight - 100, paddleX + 200, screenHeight - 50);
         }
 
         @Override
@@ -217,5 +208,4 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 }
-
 
