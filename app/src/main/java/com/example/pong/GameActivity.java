@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -102,68 +103,73 @@ public class GameActivity extends AppCompatActivity {
                 if (!holder.getSurface().isValid()) continue;
 
                 Canvas canvas = holder.lockCanvas();
+                if (canvas == null) continue;
 
                 // Background
-                canvas.drawRGB(0, 0, 0);
+                canvas.drawColor(Color.BLACK);
 
                 // Draw a line through the center of the screen horizontally
-                paintProperty.setColor(0xffffffff);
+                paintProperty.setColor(Color.WHITE);
                 canvas.drawLine(0, screenHeight / 2, screenWidth, screenHeight / 2, paintProperty);
 
                 // Draw a white border
-                canvas.drawRect(0, 0, screenWidth, 10, paintProperty);
-                canvas.drawRect(0, 0, 10, screenHeight, paintProperty);
-                canvas.drawRect(0, screenHeight - 10, screenWidth, screenHeight, paintProperty);
-                canvas.drawRect(screenWidth - 10, 0, screenWidth, screenHeight, paintProperty);
+                int borderWidth = 10;
+                paintProperty.setColor(Color.WHITE);
+                canvas.drawRect(0, 0, screenWidth, borderWidth, paintProperty);
+                canvas.drawRect(0, borderWidth, borderWidth, screenHeight - borderWidth, paintProperty);
+                canvas.drawRect(0, screenHeight - borderWidth, screenWidth, screenHeight, paintProperty);
+                canvas.drawRect(screenWidth - borderWidth, borderWidth, screenWidth, screenHeight - borderWidth, paintProperty);
 
                 // Paddle Code
+                paddleRect.set(paddleX, screenHeight - 100, paddleX + 200, screenHeight - 50);
+                paintProperty.setColor(Color.WHITE);
                 canvas.drawRect(paddleRect, paintProperty);
-
 
                 // Update the ball's position
                 ballX += ballSpeedX;
                 ballY += ballSpeedY;
 
                 // Check for collisions with the walls
-                if (ballX < 11) {
-                    ballX = 11;
+                int ballWidth = ballScaled.getWidth();
+                int ballHeight = ballScaled.getHeight();
+                int wallBorder = 11;
+                if (ballX < wallBorder) {
+                    ballX = wallBorder;
                     ballSpeedX *= -1;
-                } else if (ballX > screenWidth - ballScaled.getWidth() - 11) {
-                    ballX = screenWidth - ballScaled.getWidth() - 11;
+                } else if (ballX > screenWidth - ballWidth - wallBorder) {
+                    ballX = screenWidth - ballWidth - wallBorder;
                     ballSpeedX *= -1;
                 }
 
-                if (ballY < 11) {
-                    ballY = 11;
+                if (ballY < wallBorder) {
+                    ballY = wallBorder;
                     ballSpeedY *= -1;
-                } else if (ballY > screenHeight - ballScaled.getHeight() - 11) {
-                    ballY = screenHeight - ballScaled.getHeight() - 11;
+                } else if (ballY > screenHeight - ballHeight - wallBorder) {
+                    ballY = screenHeight - ballHeight - wallBorder;
                     ballSpeedY *= -1;
                 }
-
 
                 // Some math to calculate the angle of the bounce based on where the ball hit the paddle
-                if (Rect.intersects(paddleRect, new Rect(ballX, ballY, ballX + ballScaled.getWidth(), ballY + ballScaled.getHeight()))) {
-
+                Rect ballRect = new Rect(ballX, ballY, ballX + ballWidth, ballY + ballHeight);
+                if (Rect.intersects(paddleRect, ballRect)) {
                     float ballSpeed = (float) Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
                     float ballDirection = (float) Math.atan2(-ballSpeedY, ballSpeedX);
-                    float hitPosition = (ballX + ballScaled.getWidth() / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
+                    float hitPosition = (ballX + ballWidth / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
                     float bounceAngle;
-
+                    float maxBounceAngle = 45f;
                     if (Math.abs(hitPosition) < 0.2f) {
                         bounceAngle = 0f;
                     } else {
-                        bounceAngle = hitPosition * MAX_BOUNCE_ANGLE;
+                        bounceAngle = hitPosition * maxBounceAngle;
                     }
 
                     ballDirection += bounceAngle * Math.PI / 180f;
                     ballSpeedX = (float) (ballSpeed * Math.cos(ballDirection));
                     ballSpeedY = (float) (-ballSpeed * Math.sin(ballDirection));
-                    ballY = paddleRect.top - ballScaled.getHeight() - 1;
+                    ballY = paddleRect.top - ballHeight - 1;
                 }
 
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
-
 
                 holder.unlockCanvasAndPost(canvas);
             }
