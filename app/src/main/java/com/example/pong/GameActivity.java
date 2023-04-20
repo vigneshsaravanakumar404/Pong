@@ -14,7 +14,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -63,16 +65,19 @@ public class GameActivity extends AppCompatActivity {
         final SurfaceHolder holder;
         final Paint paintProperty;
         final int screenWidth, screenHeight;
-        final float MAX_BOUNCE_ANGLE = 60f;
-        float ballSpeedX, ballSpeedY = 10;
+
+        final SensorManager sensorManager;
         volatile boolean running = false;
         int ballX, ballY, paddleX;
         Thread gameThread;
-        SensorManager sensorManager;
-        Sensor accelerometerSensor;
-        Bitmap ballBitmapScaled = BitmapFactory.decodeResource(getResources(), R.drawable.pinpongball);
-        Bitmap ballScaled = Bitmap.createScaledBitmap(ballBitmapScaled, 50, 50, false);
-        Rect paddleRect;
+        final Sensor accelerometerSensor;
+        final Bitmap ballBitmapScaled = BitmapFactory.decodeResource(getResources(), R.drawable.pinpongball);
+        final Bitmap ballScaled = Bitmap.createScaledBitmap(ballBitmapScaled, 50, 50, false);
+        final Rect paddleRect;
+        final MediaPlayer paddleCollision = MediaPlayer.create(GameActivity.this, R.raw.paddlecollsion);
+        final MediaPlayer backgroundMusic = MediaPlayer.create(GameActivity.this, R.raw.backgroundmusic);
+        float ballSpeedX, ballSpeedY = 25;
+        MediaPlayer wallCollision = MediaPlayer.create(GameActivity.this, R.raw.wallcollision);
 
 
         public GameSurface(Context context) {
@@ -94,6 +99,12 @@ public class GameActivity extends AppCompatActivity {
             ballY = screenHeight / 2;
             paddleRect = new Rect(paddleX, screenHeight - 100, paddleX + 200, screenHeight - 50);
             paintProperty = new Paint();
+
+            // Background Music
+            backgroundMusic.setLooping(true);
+            backgroundMusic.setVolume(0.25f, 0.25f);
+            // backgroundMusic.start();
+
         }
 
 
@@ -136,40 +147,53 @@ public class GameActivity extends AppCompatActivity {
                 if (ballX < wallBorder) {
                     ballX = wallBorder;
                     ballSpeedX *= -1;
+                    //wallCollision.start();
                 } else if (ballX > screenWidth - ballWidth - wallBorder) {
                     ballX = screenWidth - ballWidth - wallBorder;
                     ballSpeedX *= -1;
+                    //wallCollision.start();
                 }
-
                 if (ballY < wallBorder) {
                     ballY = wallBorder;
                     ballSpeedY *= -1;
+                    //wallCollision.start();
                 } else if (ballY > screenHeight - ballHeight - wallBorder) {
                     ballY = screenHeight - ballHeight - wallBorder;
                     ballSpeedY *= -1;
+                    //wallCollision.start();
                 }
 
-                // Some math to calculate the angle of the bounce based on where the ball hit the paddle
                 Rect ballRect = new Rect(ballX, ballY, ballX + ballWidth, ballY + ballHeight);
                 if (Rect.intersects(paddleRect, ballRect)) {
+                    paddleCollision.start();
+
+
                     float ballSpeed = (float) Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
                     float ballDirection = (float) Math.atan2(-ballSpeedY, ballSpeedX);
-                    float hitPosition = (ballX + ballWidth / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
-                    float bounceAngle;
+                    float hitPosition = -(ballX + ballWidth / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
+
+                    float centerAngle = 90f;
                     float maxBounceAngle = 45f;
-                    if (Math.abs(hitPosition) < 0.2f) {
-                        bounceAngle = 0f;
-                    } else {
-                        bounceAngle = hitPosition * maxBounceAngle;
+                    float hitAngle;
+
+                    if (hitPosition < 0) {
+                        hitAngle = centerAngle + Math.abs(hitPosition) * (centerAngle - maxBounceAngle);
+                        Log.d("hitAngle", "hitposition: " + hitPosition);
+                    } else if (hitPosition > 0) {
+                        hitAngle = centerAngle - Math.abs(hitPosition) * (centerAngle - maxBounceAngle);
+                        Log.d("hitAngle", "hitposition: " + hitPosition);
+                    } else { // hitPosition == 0
+                        hitAngle = centerAngle;
                     }
 
-                    ballDirection += bounceAngle * Math.PI / 180f;
+                    ballDirection += hitAngle * Math.PI / 180f;
                     ballSpeedX = (float) (ballSpeed * Math.cos(ballDirection));
                     ballSpeedY = (float) (-ballSpeed * Math.sin(ballDirection));
                     ballY = paddleRect.top - ballHeight - 1;
                 }
 
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
+
 
                 holder.unlockCanvasAndPost(canvas);
             }
@@ -215,3 +239,5 @@ public class GameActivity extends AppCompatActivity {
     }
 }
 
+// TODO IMPROVE THE PADDLE COLLISION OFFSET
+// TODO IMPROVE SOUND EFFECTS AND REDUCE LATENCY
