@@ -56,10 +56,14 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 
+        // ! Delete Afterwards
+        startActivity(game);
+
+
     }
 }
 // TODO
-// 1. Create Splash Screen
+// 1. Improve Splash Screen
 // 5. Improve Welcome Screen colors/design
 // 6. Improve Splash Screen colors/design
 // 7. Image is swapped
@@ -73,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
 // 11. Score
 // 12. Game Over Screen
 // 13. Game Speed Changes on click
-// 14. Extras
-// 15. Paddle Hit offset
+// 15. Improve Paddle Hit offset
 // 16. Fix Paddle Movement
+// 14. Extras
 
 
 // ! Extras
@@ -85,3 +89,4 @@ public class MainActivity extends AppCompatActivity {
 // 4. Difficulty Levels
 // 5. Game locked to landscape
 // 6. Splash Screen
+// 7. Paddle hit offset Calculations
