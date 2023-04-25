@@ -51,9 +51,7 @@ public class MainActivity extends AppCompatActivity {
 // 1. Improve Splash Screen
 // 5. Improve Welcome Screen colors/design
 // 6. Improve Splash Screen colors/design
-// 7. Create Bomb
-// 7. Image is swapped
-// 15. return the the main menu after game over
+
 
 
 // ! Extras
@@ -65,3 +63,4 @@ public class MainActivity extends AppCompatActivity {
 // 6. Splash Screen
 // 7. Paddle hit offset Calculations
 // 8. Game Speed Changes on click
+// 9. AI

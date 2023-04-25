@@ -2,6 +2,7 @@ package com.example.pong;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,6 +18,7 @@ import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -73,6 +75,10 @@ public class GameActivity extends AppCompatActivity {
         final Sensor accelerometerSensor;
         final Bitmap ballBitmapScaled = BitmapFactory.decodeResource(getResources(), R.drawable.pinpongball);
         final Bitmap ballScaled = Bitmap.createScaledBitmap(ballBitmapScaled, 50, 50, false);
+        final Bitmap bombBitmapScaled = BitmapFactory.decodeResource(getResources(), R.drawable.bomb);
+        final Bitmap bombScaled = Bitmap.createScaledBitmap(bombBitmapScaled, 50, 50, false);
+        final Bitmap brokenPaddle = BitmapFactory.decodeResource(getResources(), R.drawable.brokenpaddle);
+        final Bitmap brokenPaddleScaled = Bitmap.createScaledBitmap(brokenPaddle, 200, 50, false);
         final Rect playerPaddleRect, computerPaddleRect;
         final MediaPlayer paddleCollision = MediaPlayer.create(GameActivity.this, R.raw.paddlecollsion);
         final MediaPlayer backgroundMusic = MediaPlayer.create(GameActivity.this, R.raw.backgroundmusic);
@@ -80,15 +86,16 @@ public class GameActivity extends AppCompatActivity {
 
         volatile boolean running = false;
 
-        int ballX, ballY, playerPaddleX, computerPaddleX;
-        int remainingTime = 1500;
+        int ballX, ballY, playerPaddleX, computerPaddleX, bombX, bombY, brokenPaddleX, brokenPaddleY;
+        int remainingTime = 30;
         int playerScore, computerScore = 0;
+        boolean broken = false;
 
         Thread gameThread;
         MediaPlayer wallCollision = MediaPlayer.create(GameActivity.this, R.raw.wallcollision);
 
 
-        @SuppressLint("ClickableViewAccessibility")
+        @SuppressLint({"ClickableViewAccessibility", "StaticFieldLeak"})
         public GameSurface(Context context) {
             super(context);
 
@@ -107,9 +114,14 @@ public class GameActivity extends AppCompatActivity {
             computerPaddleX = screenWidth / 2 - 100;
             ballX = screenWidth / 2;
             ballY = screenHeight / 2;
+            bombX = screenWidth / 2;
+            bombY = screenHeight / 2 - 250;
             playerPaddleRect = new Rect(playerPaddleX, screenHeight - 100, playerPaddleX + 200, screenHeight - 50);
             computerPaddleRect = new Rect(computerPaddleX, 50, computerPaddleX + 200, 100);
             paintProperty = new Paint();
+
+            brokenPaddleY = 10000;
+            brokenPaddleX = 10000;
 
             // Background Music
             backgroundMusic.setLooping(true);
@@ -120,18 +132,30 @@ public class GameActivity extends AppCompatActivity {
             setOnTouchListener((v, event) -> {
                 ballSpeedX *= 2;
                 ballSpeedY *= 2;
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                ballSpeedX /= 2;
-                ballSpeedY /= 2;
+
+                new AsyncTask<Void, Void, Void>() {
+                    @SuppressLint("StaticFieldLeak")
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        ballSpeedX /= 2;
+                        ballSpeedY /= 2;
+                    }
+                }.execute();
                 return false;
             });
 
         }
-
 
         @Override
         public void run() {
@@ -356,18 +380,69 @@ public class GameActivity extends AppCompatActivity {
                     }
                 }
                 computerPaddleX = (int) Math.max(0, Math.min(screenWidth - computerPaddleRect.width(), computerPaddleX + computerPaddleSpeed));
-
-
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
-
-
-                holder.unlockCanvasAndPost(canvas);
-
                 // if the absolute y velocity of the ball is less than 0.5, the ball is moving too slow, so speed it up
                 if (Math.abs(ballSpeedY) < 3) {
                     ballSpeedY *= 1.1;
                 }
+
+
+                canvas.drawBitmap(bombScaled, bombX, bombY, paintProperty);
+                bombY += 10;
+
+                Rect bombRect = new Rect(bombX, bombY, bombX + bombScaled.getWidth(), bombY + bombScaled.getHeight());
+
+                if (Rect.intersects(playerPaddleRect, bombRect)) {
+                    bombY = 0;
+                    bombX = (int) (Math.random() * screenWidth);
+                    brokenPaddleX = playerPaddleX;
+                    playerPaddleX = -1000;
+                    broken = true;
+
+                }
+                if (bombY > screenHeight) {
+                    bombY = 0;
+                    bombX = (int) (Math.random() * screenWidth);
+                }
+                if (broken) {
+                    canvas.drawBitmap(brokenPaddleScaled, brokenPaddleX, screenHeight - playerPaddleRect.height() - 50, paintProperty);
+
+                    // create a thread to set running to false after 1 seconds
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(10);
+                                running = false;
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
+
+                }
+
+                holder.unlockCanvasAndPost(canvas);
             }
+
+
+            Looper.prepare();
+            if (playerScore > computerScore) {
+                Toast.makeText(getContext(), "You Win!", Toast.LENGTH_SHORT).show();
+            } else if (playerScore < computerScore) {
+                Toast.makeText(getContext(), "You Lose!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Tie!", Toast.LENGTH_SHORT).show();
+            }
+            new Thread(() -> {
+                try {
+                    Thread.sleep(3000);
+                    getContext().startActivity(new Intent(getContext(), MainActivity.class));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
         }
 
 
@@ -395,7 +470,9 @@ public class GameActivity extends AppCompatActivity {
 
             float ax = event.values[0];
             playerPaddleX -= ax * 5;
-            if (playerPaddleX < 0) {
+            if (playerPaddleX == -1000) {
+                // do nothing
+            } else if (playerPaddleX < 0) {
                 playerPaddleX = 0;
             } else if (playerPaddleX > screenWidth - 200) {
                 playerPaddleX = screenWidth - 200;
@@ -426,15 +503,7 @@ public class GameActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(Void result) {
                 remainingTime = 0;
-                running = false; // Pause the game when the countdown is finished
-
-                if (playerScore > computerScore) {
-                    Toast.makeText(getContext(), "You Win!", Toast.LENGTH_SHORT).show();
-                } else if (playerScore < computerScore) {
-                    Toast.makeText(getContext(), "You Lose!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getContext(), "Tie!", Toast.LENGTH_SHORT).show();
-                }
+                running = false; // End the game
 
             }
 
