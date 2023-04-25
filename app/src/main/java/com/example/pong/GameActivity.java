@@ -16,7 +16,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -103,13 +102,32 @@ public class GameActivity extends AppCompatActivity {
             // Background Music
             backgroundMusic.setLooping(true);
             backgroundMusic.setVolume(0.25f, 0.25f);
-            // backgroundMusic.start();
+            backgroundMusic.start();
+
+            // When the screen Is tapped everything is double the speed for 5 seconds
+            setOnTouchListener((v, event) -> {
+                ballSpeedX *= 2;
+                ballSpeedY *= 2;
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                ballSpeedX /= 2;
+                ballSpeedY /= 2;
+                return false;
+            });
 
         }
 
 
         @Override
         public void run() {
+            paintProperty.setColor(Color.GRAY);
+            paintProperty.setTextSize(100);
+
+            long startTime = System.currentTimeMillis();
+            long countdownTime = 15000; // 15 seconds
             while (running) {
                 if (!holder.getSurface().isValid()) continue;
 
@@ -119,9 +137,13 @@ public class GameActivity extends AppCompatActivity {
                 // Background
                 canvas.drawColor(Color.BLACK);
 
-                // Draw a line through the center of the screen horizontally
+                // Draw a line through the center of the screen horizontally 2 pixels wide
                 paintProperty.setColor(Color.WHITE);
+                paintProperty.setStrokeWidth(2);
                 canvas.drawLine(0, screenHeight / 2, screenWidth, screenHeight / 2, paintProperty);
+
+                // Create a countdown timer and display it on the screen in the center pause the game when it reaches 0, do this in an AsyncTask
+
 
                 // Draw a white border
                 int borderWidth = 10;
@@ -147,41 +169,42 @@ public class GameActivity extends AppCompatActivity {
                 if (ballX < wallBorder) {
                     ballX = wallBorder;
                     ballSpeedX *= -1;
-                    //wallCollision.start();
+                    wallCollision.start();
                 } else if (ballX > screenWidth - ballWidth - wallBorder) {
                     ballX = screenWidth - ballWidth - wallBorder;
                     ballSpeedX *= -1;
-                    //wallCollision.start();
+                    wallCollision.start();
                 }
                 if (ballY < wallBorder) {
                     ballY = wallBorder;
                     ballSpeedY *= -1;
-                    //wallCollision.start();
+                    wallCollision.start();
                 } else if (ballY > screenHeight - ballHeight - wallBorder) {
                     ballY = screenHeight - ballHeight - wallBorder;
                     ballSpeedY *= -1;
-                    //wallCollision.start();
+                    wallCollision.start();
                 }
 
                 Rect ballRect = new Rect(ballX, ballY, ballX + ballWidth, ballY + ballHeight);
                 if (Rect.intersects(paddleRect, ballRect)) {
                     paddleCollision.start();
 
-
                     float ballSpeed = (float) Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
                     float ballDirection = (float) Math.atan2(-ballSpeedY, ballSpeedX);
-                    float hitPosition = -(ballX + ballWidth / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
+                    float hitPosition = (ballX + ballWidth / 2f - paddleRect.centerX()) / (paddleRect.width() / 2f);
 
-                    float centerAngle = 90f;
-                    float maxBounceAngle = 45f;
+                    float centerAngle = 180f;
+                    float edgeAngle = 120f;
                     float hitAngle;
 
                     if (hitPosition < 0) {
-                        hitAngle = centerAngle + Math.abs(hitPosition) * (centerAngle - maxBounceAngle);
-                        Log.d("hitAngle", "hitposition: " + hitPosition);
+                        // Ball bounces to the left
+                        hitAngle = centerAngle + (hitPosition + 0.5f) * (centerAngle - edgeAngle);
+                        ballSpeedX = -Math.abs(ballSpeedX);
                     } else if (hitPosition > 0) {
-                        hitAngle = centerAngle - Math.abs(hitPosition) * (centerAngle - maxBounceAngle);
-                        Log.d("hitAngle", "hitposition: " + hitPosition);
+                        // Ball bounces to the right
+                        hitAngle = centerAngle + (hitPosition - 0.5f) * (edgeAngle - centerAngle);
+                        ballSpeedX = Math.abs(ballSpeedX);
                     } else { // hitPosition == 0
                         hitAngle = centerAngle;
                     }
@@ -192,10 +215,16 @@ public class GameActivity extends AppCompatActivity {
                     ballY = paddleRect.top - ballHeight - 1;
                 }
 
+
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
 
 
                 holder.unlockCanvasAndPost(canvas);
+
+                // if the absolute y velocity of the ball is less than 0.5, the ball is moving too slow, so speed it up
+                if (Math.abs(ballSpeedY) < 3) {
+                    ballSpeedY *= 1.1;
+                }
             }
         }
 
@@ -238,6 +267,3 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 }
-
-// TODO IMPROVE THE PADDLE COLLISION OFFSET
-// TODO IMPROVE SOUND EFFECTS AND REDUCE LATENCY

@@ -67,11 +67,6 @@ public class MainActivity extends AppCompatActivity {
 // 5. Improve Welcome Screen colors/design
 // 6. Improve Splash Screen colors/design
 // 7. Image is swapped
-// 8. Sound effects
-// 8.1. Ball hit paddle
-// 8.2. Ball hit wall
-// 8.3. Game Over
-// 8.4. Game Start
 // 9. Difficulty Levels
 // 10. Game Timer
 // 11. Score
