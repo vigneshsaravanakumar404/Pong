@@ -23,7 +23,6 @@ import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -79,9 +78,9 @@ public class GameActivity extends AppCompatActivity {
         final Bitmap bombScaled = Bitmap.createScaledBitmap(bombBitmapScaled, 50, 50, false);
         final Bitmap brokenPaddle = BitmapFactory.decodeResource(getResources(), R.drawable.brokenpaddle);
         final Bitmap brokenPaddleScaled = Bitmap.createScaledBitmap(brokenPaddle, 200, 50, false);
-        final Rect playerPaddleRect, computerPaddleRect;
         final MediaPlayer paddleCollision = MediaPlayer.create(GameActivity.this, R.raw.paddlecollsion);
         final MediaPlayer backgroundMusic = MediaPlayer.create(GameActivity.this, R.raw.backgroundmusic);
+        final MediaPlayer explosion = MediaPlayer.create(GameActivity.this, R.raw.explosion);
         float ballSpeedX = 0, ballSpeedY = 25, computerPaddleSpeed = 0;
 
         volatile boolean running = false;
@@ -91,6 +90,7 @@ public class GameActivity extends AppCompatActivity {
         int playerScore, computerScore = 0;
         boolean broken = false;
 
+        Rect playerPaddleRect, computerPaddleRect;
         Thread gameThread;
         MediaPlayer wallCollision = MediaPlayer.create(GameActivity.this, R.raw.wallcollision);
 
@@ -128,10 +128,12 @@ public class GameActivity extends AppCompatActivity {
             backgroundMusic.setVolume(0.25f, 0.25f);
             backgroundMusic.start();
 
+
             // When the screen Is tapped everything is double the speed for 5 seconds
             setOnTouchListener((v, event) -> {
                 ballSpeedX *= 2;
                 ballSpeedY *= 2;
+
 
                 new AsyncTask<Void, Void, Void>() {
                     @SuppressLint("StaticFieldLeak")
@@ -179,11 +181,6 @@ public class GameActivity extends AppCompatActivity {
                 String timeString = String.valueOf(remainingTime);
                 float textWidth = paintProperty.measureText(timeString);
                 canvas.drawText(timeString, screenWidth / 2 - textWidth / 2, screenHeight / 2 - 25, paintProperty);
-                canvas.save();
-                canvas.rotate(180, screenWidth / 2, screenHeight / 2);
-                canvas.drawText(timeString, screenWidth / 2 - textWidth / 2, screenHeight / 2 - 25, paintProperty);
-                canvas.restore();
-
 
                 // Draw a line through the center of the screen horizontally 2 pixels wide
                 paintProperty.setColor(Color.WHITE);
@@ -407,37 +404,29 @@ public class GameActivity extends AppCompatActivity {
                 }
                 if (broken) {
                     canvas.drawBitmap(brokenPaddleScaled, brokenPaddleX, screenHeight - playerPaddleRect.height() - 50, paintProperty);
-
-                    // create a thread to set running to false after 1 seconds
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(10);
-                                running = false;
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(10);
+                            running = false;
+                            explosion.start();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }).start();
 
                 }
-
-                // Create a button in the right center of the screen to change the direction of the bomb
-
-
                 holder.unlockCanvasAndPost(canvas);
             }
 
 
             Looper.prepare();
-            if (playerScore > computerScore) {
-                Toast.makeText(getContext(), "You Win!", Toast.LENGTH_SHORT).show();
-            } else if (playerScore < computerScore) {
-                Toast.makeText(getContext(), "You Lose!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "Tie!", Toast.LENGTH_SHORT).show();
-            }
+            paddleCollision.stop();
+            paddleCollision.release();
+            backgroundMusic.stop();
+            backgroundMusic.release();
+
+            // TODO Display Toast Message
+
             new Thread(() -> {
                 try {
                     Thread.sleep(3000);
@@ -446,7 +435,6 @@ public class GameActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }).start();
-
         }
 
 
@@ -456,7 +444,6 @@ public class GameActivity extends AppCompatActivity {
             gameThread.start();
         }
 
-        @SuppressWarnings("InfiniteLoopStatement")
         public void pause() {
             running = false;
             while (true) {
@@ -474,7 +461,7 @@ public class GameActivity extends AppCompatActivity {
 
             float ax = event.values[0];
             playerPaddleX -= ax * 5;
-            if (playerPaddleX == -1000) {
+            if (playerPaddleX == -1000 || broken) {
                 // do nothing
             } else if (playerPaddleX < 0) {
                 playerPaddleX = 0;

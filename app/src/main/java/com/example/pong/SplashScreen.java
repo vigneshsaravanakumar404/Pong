@@ -13,8 +13,6 @@ import java.util.Objects;
 @SuppressLint("CustomSplashScreen")
 public class SplashScreen extends AppCompatActivity {
 
-
-    // Variables
     Handler handler;
 
     @Override
@@ -22,14 +20,12 @@ public class SplashScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
-        // Full Screen the app
+        // ! Change this afterwards
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         Objects.requireNonNull(getSupportActionBar()).hide();
-
         handler = new Handler();
         handler.postDelayed(() -> {
-            Intent intent = new Intent(SplashScreen.this, MainActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(SplashScreen.this, MainActivity.class));
             finish();
         }, 1);
 
