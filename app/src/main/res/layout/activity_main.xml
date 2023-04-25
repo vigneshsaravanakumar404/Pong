@@ -16,7 +16,7 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.458"
+        app:layout_constraintVertical_bias="0.499"
         tools:ignore="HardcodedText" />
 
     <TextView
@@ -28,45 +28,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.222"
+        app:layout_constraintVertical_bias="0.209"
         tools:ignore="HardcodedText" />
 
-    <RadioGroup
-        android:id="@+id/difficulty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.75">
-
-        <RadioButton
-            android:id="@+id/easy"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Easy"
-            tools:ignore="HardcodedText" />
-
-        <RadioButton
-            android:id="@+id/medium"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Medium"
-            tools:ignore="HardcodedText"/>
-
-        <RadioButton
-            android:id="@+id/hard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Hard"
-            tools:ignore="HardcodedText"/>
-
-        <RadioButton
-            android:id="@+id/perfect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Perfect"
-            tools:ignore="HardcodedText"/>
-    </RadioGroup>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,8 +15,6 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class MainActivity extends AppCompatActivity {
 
-    public static int difficultyLevel = 0;
-
     // Initializing Variables
     RadioGroup difficulty;
     Button play;
@@ -33,23 +31,10 @@ public class MainActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).hide();
 
         // Variables
-        difficulty = findViewById(R.id.difficulty);
         play = findViewById(R.id.play);
         game = new Intent(this, GameActivity.class);
 
-        // App settings
-        difficulty.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.easy) {
-                difficultyLevel = 0;
-            } else if (checkedId == R.id.medium) {
-                difficultyLevel = 1;
-            } else if (checkedId == R.id.hard) {
-                difficultyLevel = 2;
-            } else if (checkedId == R.id.perfect) {
-                difficultyLevel = 3;
-            }
-        });
-        difficulty.check(R.id.easy);
+        // Start Game
         play.setOnClickListener(v -> startActivity(game));
 
         // Lock the app to portrait mode
@@ -66,15 +51,9 @@ public class MainActivity extends AppCompatActivity {
 // 1. Improve Splash Screen
 // 5. Improve Welcome Screen colors/design
 // 6. Improve Splash Screen colors/design
+// 7. Create Bomb
 // 7. Image is swapped
-// 9. Difficulty Levels
-// 10. Game Timer
-// 11. Score
-// 12. Game Over Screen
-// 13. Game Speed Changes on click
-// 15. Improve Paddle Hit offset
-// 16. Fix Paddle Movement
-// 14. Extras
+// 15. return the the main menu after game over
 
 
 // ! Extras
@@ -85,3 +64,4 @@ public class MainActivity extends AppCompatActivity {
 // 5. Game locked to landscape
 // 6. Splash Screen
 // 7. Paddle hit offset Calculations
+// 8. Game Speed Changes on click
