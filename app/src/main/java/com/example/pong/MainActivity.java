@@ -49,9 +49,8 @@ public class MainActivity extends AppCompatActivity {
 }
 // TODO
 // 1. Improve Splash Screen
-// 5. Improve Welcome Screen colors/design
-// 6. Improve Splash Screen colors/design
-
+// 5. Improve Start Screen
+// 7. Button to Fire
 
 
 // ! Extras

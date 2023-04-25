@@ -86,7 +86,7 @@ public class GameActivity extends AppCompatActivity {
 
         volatile boolean running = false;
 
-        int ballX, ballY, playerPaddleX, computerPaddleX, bombX, bombY, brokenPaddleX, brokenPaddleY;
+        int ballX, ballY, playerPaddleX, computerPaddleX, bombX, bombY, brokenPaddleX, brokenPaddleY, bombSpeed = 10;
         int remainingTime = 30;
         int playerScore, computerScore = 0;
         boolean broken = false;
@@ -388,7 +388,7 @@ public class GameActivity extends AppCompatActivity {
 
 
                 canvas.drawBitmap(bombScaled, bombX, bombY, paintProperty);
-                bombY += 10;
+                bombY += bombSpeed;
 
                 Rect bombRect = new Rect(bombX, bombY, bombX + bombScaled.getWidth(), bombY + bombScaled.getHeight());
 
@@ -400,7 +400,8 @@ public class GameActivity extends AppCompatActivity {
                     broken = true;
 
                 }
-                if (bombY > screenHeight) {
+                if (bombY > screenHeight || bombY < 0) {
+                    bombSpeed = 10;
                     bombY = 0;
                     bombX = (int) (Math.random() * screenWidth);
                 }
@@ -421,6 +422,9 @@ public class GameActivity extends AppCompatActivity {
                     }).start();
 
                 }
+
+                // Create a button in the right center of the screen to change the direction of the bomb
+
 
                 holder.unlockCanvasAndPost(canvas);
             }
