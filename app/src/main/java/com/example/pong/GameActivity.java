@@ -19,9 +19,11 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,13 +34,29 @@ import java.util.Objects;
 public class GameActivity extends AppCompatActivity {
 
 
+    public static int playerScore = 0, computerScore = 0;
+    public static boolean broken = false;
     // Variables
     GameSurface gameSurface;
+    int delay = 1000;
+    int remainingTime = 30;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // rest all the variables
+        playerScore = 0;
+        computerScore = 0;
+
+
         super.onCreate(savedInstanceState);
+
+
+        // destruct any previous game activity
+        if (gameSurface != null) {
+            gameSurface = null;
+        }
         gameSurface = new GameSurface(this);
 
         setContentView(gameSurface);
@@ -46,6 +64,16 @@ public class GameActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         getWindow().setFlags(0x04000000, 0x04000000);
         Objects.requireNonNull(getSupportActionBar()).hide();
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        Objects.requireNonNull(getSupportActionBar()).hide();
+
+
+        // if this is the second time the app is running refresh the app
+        if (gameSurface.gameThread != null) {
+            gameSurface.gameThread = null;
+        }
+
+
     }
 
 
@@ -63,12 +91,12 @@ public class GameActivity extends AppCompatActivity {
 
 
     // Main Game Code
+    @SuppressWarnings("SuspiciousNameCombination")
     public class GameSurface extends SurfaceView implements Runnable, SensorEventListener {
 
         final int screenWidth, screenHeight;
         final SurfaceHolder holder;
         final Paint paintProperty;
-
 
         final SensorManager sensorManager;
         final Sensor accelerometerSensor;
@@ -81,23 +109,35 @@ public class GameActivity extends AppCompatActivity {
         final MediaPlayer paddleCollision = MediaPlayer.create(GameActivity.this, R.raw.paddlecollsion);
         final MediaPlayer backgroundMusic = MediaPlayer.create(GameActivity.this, R.raw.backgroundmusic);
         final MediaPlayer explosion = MediaPlayer.create(GameActivity.this, R.raw.explosion);
-        float ballSpeedX = 0, ballSpeedY = 25, computerPaddleSpeed = 0;
+        final int brokenPaddleY;
+
 
         volatile boolean running = false;
-
-        int ballX, ballY, playerPaddleX, computerPaddleX, bombX, bombY, brokenPaddleX, brokenPaddleY, bombSpeed = 10;
-        int remainingTime = 30;
-        int playerScore, computerScore = 0;
-        boolean broken = false;
-
-        Rect playerPaddleRect, computerPaddleRect;
+        final Rect playerPaddleRect;
+        final Rect computerPaddleRect;
+        final MediaPlayer wallCollision = MediaPlayer.create(GameActivity.this, R.raw.wallcollision);
+        float ballSpeedX = 0, ballSpeedY = 10, computerPaddleSpeed = 0;
+        int ballX;
+        int ballY;
+        int playerPaddleX;
+        int computerPaddleX;
+        int bombX;
+        int bombY;
+        int brokenPaddleX;
         Thread gameThread;
-        MediaPlayer wallCollision = MediaPlayer.create(GameActivity.this, R.raw.wallcollision);
+        int bombSpeed = 10;
 
 
         @SuppressLint({"ClickableViewAccessibility", "StaticFieldLeak"})
         public GameSurface(Context context) {
             super(context);
+
+
+            // if this is the second time the game is being played, refresh the activity
+            if (gameThread != null) {
+                gameThread = null;
+            }
+
 
             // Accelerometer Declaration
             sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -123,6 +163,9 @@ public class GameActivity extends AppCompatActivity {
             brokenPaddleY = 10000;
             brokenPaddleX = 10000;
 
+            broken = false;
+
+
             // Background Music
             backgroundMusic.setLooping(true);
             backgroundMusic.setVolume(0.25f, 0.25f);
@@ -133,7 +176,6 @@ public class GameActivity extends AppCompatActivity {
             setOnTouchListener((v, event) -> {
                 ballSpeedX *= 2;
                 ballSpeedY *= 2;
-
 
                 new AsyncTask<Void, Void, Void>() {
                     @SuppressLint("StaticFieldLeak")
@@ -161,8 +203,9 @@ public class GameActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-
-            new CountdownTask().execute();
+            CountdownTask countDown = new CountdownTask();
+            countDown.execute();
+            running = true;
 
             while (running) {
                 if (!holder.getSurface().isValid()) continue;
@@ -174,7 +217,6 @@ public class GameActivity extends AppCompatActivity {
                 // Background
                 canvas.drawColor(Color.BLACK);
 
-
                 // Countdown Timer
                 paintProperty.setColor(Color.RED);
                 paintProperty.setTextSize(50);
@@ -182,14 +224,16 @@ public class GameActivity extends AppCompatActivity {
                 float textWidth = paintProperty.measureText(timeString);
                 canvas.drawText(timeString, screenWidth / 2 - textWidth / 2, screenHeight / 2 - 25, paintProperty);
 
-                // Draw a line through the center of the screen horizontally 2 pixels wide
+                // Line in the middle of the screen
                 paintProperty.setColor(Color.WHITE);
                 paintProperty.setStrokeWidth(2);
                 canvas.drawLine(0, screenHeight / 2, screenWidth, screenHeight / 2, paintProperty);
 
 
+                // Paint Properties
                 paintProperty.setTextSize(100);
                 paintProperty.setColor(Color.GRAY);
+
                 // Display the computerScore in the middle of the top half of the screen
                 String computerScoreString = String.valueOf(computerScore);
                 float computerScoreWidth = paintProperty.measureText(computerScoreString);
@@ -242,7 +286,7 @@ public class GameActivity extends AppCompatActivity {
                     ballX = screenWidth / 2;
                     ballY = screenHeight / 2;
                     ballSpeedX = 0;
-                    ballSpeedY = 25;
+                    ballSpeedY = 10;
                     if (Math.random() < 0.5) ballSpeedY *= -1;
                 } else if (ballY > screenHeight - ballHeight - wallBorder) {
                     ballY = screenHeight - ballHeight - wallBorder;
@@ -252,7 +296,7 @@ public class GameActivity extends AppCompatActivity {
                     ballX = screenWidth / 2;
                     ballY = screenHeight / 2;
                     ballSpeedX = 0;
-                    ballSpeedY = 25;
+                    ballSpeedY = 10;
                     if (Math.random() < 0.5) ballSpeedY *= -1;
                 }
 
@@ -300,14 +344,12 @@ public class GameActivity extends AppCompatActivity {
                     float hitAngle;
 
                     if (hitPosition < 0) {
-                        // Ball bounces to the left
                         hitAngle = centerAngle + (hitPosition + 0.5f) * (centerAngle - edgeAngle);
                         ballSpeedX = -Math.abs(ballSpeedX);
                     } else if (hitPosition > 0) {
-                        // Ball bounces to the right
                         hitAngle = centerAngle + (hitPosition - 0.5f) * (edgeAngle - centerAngle);
                         ballSpeedX = Math.abs(ballSpeedX);
-                    } else { // hitPosition == 0
+                    } else {
                         hitAngle = centerAngle;
                     }
 
@@ -323,8 +365,6 @@ public class GameActivity extends AppCompatActivity {
                 if (Rect.intersects(computerPaddleRect, ballRect)) {
                     paddleCollision.start();
 
-                    float timeToOtherSide = (screenWidth - ballX - ballWidth) / ballSpeedX;
-                    float targetY = ballY + ballSpeedY * timeToOtherSide;
                     if (computerPaddleCenterX < screenWidth / 2f) {
                         computerPaddleSpeed = Math.min(10, screenWidth / 2f - computerPaddleCenterX);
                     } else if (computerPaddleCenterX > screenWidth / 2f) {
@@ -378,6 +418,7 @@ public class GameActivity extends AppCompatActivity {
                 }
                 computerPaddleX = (int) Math.max(0, Math.min(screenWidth - computerPaddleRect.width(), computerPaddleX + computerPaddleSpeed));
                 canvas.drawBitmap(ballScaled, ballX, ballY, paintProperty);
+
                 // if the absolute y velocity of the ball is less than 0.5, the ball is moving too slow, so speed it up
                 if (Math.abs(ballSpeedY) < 3) {
                     ballSpeedY *= 1.1;
@@ -386,7 +427,6 @@ public class GameActivity extends AppCompatActivity {
 
                 canvas.drawBitmap(bombScaled, bombX, bombY, paintProperty);
                 bombY += bombSpeed;
-
                 Rect bombRect = new Rect(bombX, bombY, bombX + bombScaled.getWidth(), bombY + bombScaled.getHeight());
 
                 if (Rect.intersects(playerPaddleRect, bombRect)) {
@@ -424,12 +464,14 @@ public class GameActivity extends AppCompatActivity {
             paddleCollision.release();
             backgroundMusic.stop();
             backgroundMusic.release();
+            delay = 0;
+
 
             // TODO Display Toast Message
 
             new Thread(() -> {
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(1000);
                     getContext().startActivity(new Intent(getContext(), MainActivity.class));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -476,24 +518,29 @@ public class GameActivity extends AppCompatActivity {
 
         }
 
+        @SuppressLint("StaticFieldLeak")
         private class CountdownTask extends AsyncTask<Void, Void, Void> {
 
             @Override
             protected Void doInBackground(Void... params) {
                 while (remainingTime > 0) {
+
+                    publishProgress();
+
                     try {
-                        Thread.sleep(1000); // Wait for 1 second
+                        Thread.sleep(delay);
+                        remainingTime--;
+                        Log.d("Remaining Time", String.valueOf(remainingTime));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    remainingTime--;
+
                 }
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void result) {
-                remainingTime = 0;
                 running = false; // End the game
 
             }
