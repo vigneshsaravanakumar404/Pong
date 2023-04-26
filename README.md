@@ -7,9 +7,17 @@ Tilt the phone to move tha paddle. Try not to make contact with the bombs that d
 
 
 ## Screenshots
-![Splash Screen](https://live.staticflickr.com/65535/52848984169_b9a9110209_o.png)
+<table>
+  <tr>
+    <td>
+      <img src="https://live.staticflickr.com/65535/52848984169_b9a9110209_o.png" alt="Splash Screen">
+    </td>
+    <td>
+      <img src="https://live.staticflickr.com/65535/52849438668_9cfcefcccd_o.jpg" alt="Game Screen">
+    </td>
+  </tr>
+</table>
 
-![Game Screen]()
 
 
 ## Built With
