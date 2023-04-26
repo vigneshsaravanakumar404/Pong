@@ -12,4 +12,4 @@ Tilt the phone to move tha paddle. Try not to make contact with the bombs that d
 # Build With 
 [![Android Studio](https://img.shields.io/badge/Android%20Studio-2023.1.1-green.svg?style=flat-square&logo=android-studio)](https://developer.android.com/studio)
 [![Gradle](https://img.shields.io/badge/Gradle-8.1.1-green.svg?style=flat-square&logo=gradle)](https://gradle.org/)
-[![Java](https://img.shields.io/badge/Java-8-orange.svg?style=flat-square&logo=java)](https://www.java.com/en/)
+[![Java](https://img.shields.io/badge/Java-17-orange.svg?style=flat-square&logo=java)](https://www.java.com/en/)
