@@ -8,3 +8,8 @@ Recreation of Atari's Pong as an Android Studios App. Accelerometer values from 
 ## Rules
 
 Tilt the phone to move tha paddle. Try not to make contact with the bombs that drop from the top. You gain a point every time the ball hits your opponents wall. Game lasts for 30 seconds
+
+# Build With 
+[![Android Studio](https://img.shields.io/badge/Android%20Studio-4.2.2-green.svg?style=flat-square&logo=android-studio)](https://developer.android.com/studio)
+[![Gradle](https://img.shields.io/badge/Gradle-7.1.1-green.svg?style=flat-square&logo=gradle)](https://gradle.org/)
+[![Java](https://img.shields.io/badge/Java-8-orange.svg?style=flat-square&logo=java)](https://www.java.com/en/)
