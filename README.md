@@ -11,6 +11,12 @@ Recreation of Atari's Pong as an Android Studios App. Accelerometer values from 
 Tilt the phone to move tha paddle. Try not to make contact with the bombs that drop from the top. You gain a point every time the ball hits your opponents wall. Game lasts for 30 seconds
 
 
+# Screenshots
+
+![Splash Screen](https://live.staticflickr.com/65535/52848984169_b9a9110209_o.png)
+
+![Game Screen]()
+
 
 # Built With
 
