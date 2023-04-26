@@ -1,3 +1,5 @@
+#Pong
+
 Recreation of Atari's Pong as an Android Studios App. Accelerometer values from a phone are used to move the paddle. The computer AI responds to ball movements and returns the ball. 
 
 
