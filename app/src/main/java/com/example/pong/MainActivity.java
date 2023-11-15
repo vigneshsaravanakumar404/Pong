@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
     TextView scores;
 
+
+    public static boolean first = true;
     int previousPlayerScore = GameActivity.playerScore;
     int previousComputerScore = GameActivity.computerScore;
 
@@ -48,20 +50,19 @@ public class MainActivity extends AppCompatActivity {
 
 
         // if the score is not o then create a textview and display the score
-        if (previousPlayerScore != 0 || previousComputerScore != 0) {
-            scores.setText("Player: " + previousPlayerScore + "\t\tComputer: " + previousComputerScore);
-            scores.setTextColor(getResources().getColor(R.color.white));
-            scores.setTextSize(30);
+        // if its not the first time playing
+        scores.setText("Player: " + previousPlayerScore + "\t\tComputer: " + previousComputerScore);
+        scores.setTextColor(getResources().getColor(R.color.white));
+        scores.setTextSize(30);
 
-            if (GameActivity.broken) {
-                Toast.makeText(getApplicationContext(), "Computer Wins!", Toast.LENGTH_SHORT).show();
-            } else if (previousPlayerScore > previousComputerScore) {
-                Toast.makeText(getApplicationContext(), "Player Wins!", Toast.LENGTH_SHORT).show();
-            } else if (previousPlayerScore < previousComputerScore) {
-                Toast.makeText(getApplicationContext(), "Computer Wins!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "It's a Tie!", Toast.LENGTH_SHORT).show();
-            }
+        if (GameActivity.broken) {
+            Toast.makeText(getApplicationContext(), "Computer Wins! Your Paddle Broke", Toast.LENGTH_SHORT).show();
+        } else if (previousPlayerScore > previousComputerScore) {
+            Toast.makeText(getApplicationContext(), "Player Wins!", Toast.LENGTH_SHORT).show();
+        } else if (previousPlayerScore < previousComputerScore) {
+            Toast.makeText(getApplicationContext(), "Computer Wins!", Toast.LENGTH_SHORT).show();
+        } else if (!first){
+            Toast.makeText(getApplicationContext(), "It's a Tie!", Toast.LENGTH_SHORT).show();
         }
 
 

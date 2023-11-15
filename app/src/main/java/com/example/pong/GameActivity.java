@@ -36,6 +36,7 @@ public class GameActivity extends AppCompatActivity {
 
     public static int playerScore = 0, computerScore = 0;
     public static boolean broken = false;
+
     // Variables
     GameSurface gameSurface;
     int delay = 1000;
@@ -45,9 +46,11 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+
         // rest all the variables
         playerScore = 0;
         computerScore = 0;
+        MainActivity.first = false;
 
 
         super.onCreate(savedInstanceState);
@@ -155,7 +158,7 @@ public class GameActivity extends AppCompatActivity {
             ballX = screenWidth / 2;
             ballY = screenHeight / 2;
             bombX = screenWidth / 2;
-            bombY = screenHeight / 2 - 250;
+            bombY = 0;
             playerPaddleRect = new Rect(playerPaddleX, screenHeight - 100, playerPaddleX + 200, screenHeight - 50);
             computerPaddleRect = new Rect(computerPaddleX, 50, computerPaddleX + 200, 100);
             paintProperty = new Paint();
@@ -467,11 +470,12 @@ public class GameActivity extends AppCompatActivity {
             delay = 0;
 
 
+
             // TODO Display Toast Message
 
             new Thread(() -> {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1750);
                     getContext().startActivity(new Intent(getContext(), MainActivity.class));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
