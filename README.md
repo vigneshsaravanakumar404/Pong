@@ -19,6 +19,7 @@ Tilt the phone to move tha paddle. Try not to make contact with the bombs that d
 </table>
 
 ## Demo Video
+https://youtu.be/PqJMfYd_mSY
 
 ## Built With
 <table>
